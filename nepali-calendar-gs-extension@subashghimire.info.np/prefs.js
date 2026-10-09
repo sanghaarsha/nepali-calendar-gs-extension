@@ -2,7 +2,6 @@ import {
   ExtensionPreferences,
   gettext as _,
 } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
-import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 import Adw from 'gi://Adw';
 
@@ -49,16 +48,11 @@ export default class NepaliCalendarPreferences extends ExtensionPreferences {
     // Update the setting when the selection changes
     positionComboRow.connect('notify::selected', (combo) => {
       const selectedOption = positionOptions[combo.selected];
-      window._settings.set_string('menu-position', selectedOption.id);
+      if (selectedOption) {
+        window._settings.set_string('menu-position', selectedOption.id);
+      }
     });
 
     group.add(positionComboRow);
-
-    window._settings.bind(
-      'menu-position',
-      positionComboRow,
-      'selected',
-      Gio.SettingsBindFlags.DEFAULT
-    );
   }
 }

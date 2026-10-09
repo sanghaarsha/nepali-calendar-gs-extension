@@ -37,7 +37,7 @@ const Indicator = GObject.registerClass(
 
     _createPopupMenu() {
       const popupContainer = new St.BoxLayout({
-        vertical: true,
+        orientation: Clutter.Orientation.VERTICAL,
         style_class: 'np-cal-custom-popup-container',
       });
       this._yearMonthLabel = new St.Label({
@@ -46,7 +46,7 @@ const Indicator = GObject.registerClass(
       });
       const dayDateContainer = new St.BoxLayout({
         style_class: 'np-cal-day-date-circle',
-        vertical: true,
+        orientation: Clutter.Orientation.VERTICAL,
         x_align: Clutter.ActorAlign.CENTER,
       });
       this._dayLabel = new St.Label({
@@ -82,7 +82,7 @@ const Indicator = GObject.registerClass(
         reactive: false,
       });
       customItem.add_style_class_name('np-cal-custom-popup-item');
-      customItem.actor.add_child(popupContainer);
+      customItem.add_child(popupContainer);
       this.menu.addMenuItem(customItem);
     }
 
@@ -162,14 +162,22 @@ export default class NepaliCalendar extends Extension {
     this._positionChangedId = null;
   }
 
-  enable() {
+  async enable() {
     this._settings = this.getSettings();
     const position = this._settings.get_string('menu-position');
 
-    preloadYearData(this.path).then(() => {
+    try {
+      await preloadYearData(this.path);
+
+      if (!this._settings) {
+        return;
+      }
+
       this._extension = new Indicator();
       this._addToPanel(position);
-    });
+    } catch (error) {
+      console.error('Failed to enable Nepali Calendar extension:', error);
+    }
 
     this._positionChangedId = this._settings.connect(
       'changed::menu-position',
@@ -221,7 +229,7 @@ export default class NepaliCalendar extends Extension {
       right: Main.panel._rightBox,
     };
 
-    const panelPosition = positionMap[position];
+    const panelPosition = positionMap[position] || Main.panel._centerBox;
     panelPosition.insert_child_at_index(this._extension.container, -1);
     Main.panel.menuManager.addMenu(this._extension.menu);
   }
